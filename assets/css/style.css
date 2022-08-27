@@ -1,0 +1,28 @@
+#app, .screen-h{
+	min-height: 100vh;
+}
+
+#cb-app-menu:checked + div{
+	width: 50px;
+}
+
+#cb-app-menu:checked + div label{
+	display: none;
+}
+
+#app-menu{
+	width: 250px;
+	transition: width .4s;
+}
+
+.menu-item > label:hover{
+	color: black;
+	background: red;
+}
+
+.menu-item > label{
+	cursor: pointer;
+	flex: 1;
+	padding: 6px;
+	display: block;
+}

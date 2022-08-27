@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Admin</title>
+	<link rel="stylesheet" type="text/css" href="assets/css/main.css">
+	<link rel="stylesheet" type="text/css" href="assets/css/style.css">
+
+	<script type="text/javascript">
+		const MENU = [
+			{label: 'Dashbroad', icon: 'img/a.png', href: '#'},
+			{label: 'Users', icon: 'img/a.png', childs: [
+				['List User', [
+					['Preview']
+				]],
+				['Create User'],
+			]},
+			['Groups', [
+				['List User'],
+				['Create User'],
+			]],
+			['Options'],
+		]
+	</script>
+</head>
+<body>
+
+	<div class="flex unselect" id="app">
+
+		<input type="checkbox" class="w z-0" name="" id="cb-app-menu">
+		<div class="flex-r screen-h" id="app-menu" bg="1">
+			<div id="app-name" class="text-c padding z-3">
+				<h1 class="size z-6 text-white">Administrator</h1>
+			</div>
+			<div class="flex-1">
+				<div id="menu" class="text-white padding z-2">
+				</div>
+			</div>
+		</div>
+
+		<div class="flex-1 flex-r screen-h" id="app-container">
+
+			<div class="padding z-3 flex shadow" id="container-header">
+				<div class="w z-9">
+					<label for="cb-app-menu" class="curs padding z-1">☰</label>
+					<b class="size z-5">Dashbroad</b>
+				</div>
+				<div class="w z-3 text-r margin-a">
+					Notify
+				</div>
+			</div>
+			<div class="flex-1" id="container-content" style="position: relative;">
+				<div class="b-full">
+					<div style="min-height: 1000px">
+				</div>
+			</div>
+
+		</div>
+
+	</div>
+
+	<script type="text/javascript">
+
+		function CreateElement(options = {}){
+			let el = document.createElement(options.type || 'div');
+			for(let i in options.attrs){
+				let value = options.attrs[i];
+				el.setAttribute(i, value);
+			}
+
+			if(options.text)
+				el.innerHTML = options.text;
+
+			return el;
+		}
+		// item: [label, childs, attrs, action, href] {icon}
+		function Menu(_menu) {
+
+			function MenuItem(id, options, parent){
+
+				function to_slug(Text) {
+				  return Text.toLowerCase()
+				             .replace(/[^\w ]+/g, '')
+				             .replace(/ +/g, '-');
+				}
+
+				let label = options.label || options[0];
+
+				let childs = options.childs || options[1];
+
+				let attrs = options.attrs || options[2];
+
+				let action = options.action || options[3];
+
+				let href = options.href || options[4];
+
+				let icon = options.icon;
+
+				let target = CreateElement({ attrs: {class: 'menu-item'} });
+
+				let el_label = CreateElement({type: 'label', text: label, attrs });
+
+				function grand_parent(parent = self){
+					if(!parent.parent)
+						// return [{id: parent.id, label: parent.label, slug: parent.slug, action: parent.action}];
+						return [];
+					return [...grand_parent(parent.parent), {id: parent.id, label: parent.label, slug: parent.slug, action: parent.action}];
+				}
+
+				let self = {id, label, parent, slug: to_slug(label), target, grand_parent, action }
+
+				function init(){
+
+					if(href)
+						target = CreateElement({ type: 'a', attrs: {class: 'menu-item', href} });
+					else
+						target = CreateElement({ attrs: {class: 'menu-item'} });
+
+					target.onclick = action;
+
+					if(icon){
+						let el_icon;
+						if(icon.includes('.'))
+							el_icon = CreateElement({type: 'img', attrs: {
+								class: 'menu-item-icon',
+								src: icon
+							}})
+						else
+							el_icon = CreateElement({type: 'i', attrs: {
+								class: `menu-item-icon ${icon}`
+							}})
+
+						let el_group = CreateElement({attrs: { class: 'flex' }});
+						el_group.appendChild(el_icon);
+						el_group.appendChild(el_label);
+
+						target.appendChild(el_group);
+					}
+					else
+						target.appendChild(el_label);
+
+					Object.defineProperties(self, {
+						grand_parent: { get: function(){ return grand_parent() } },
+						target: { get: function(){ return target; } },
+						action: { get: function(){ return function(){
+							if(typeof action == 'function')
+								action(self);
+						}; } },
+					})
+
+					if(typeof childs == 'object'){
+						self.childs = {};
+						target.classList.add('has-childs');
+						let el_childs = CreateElement({attrs: {
+							class: 'child-item padding-v z-4'
+						}});
+						target.appendChild(el_childs);
+						for(let i in childs){
+							let item = MenuItem(i, childs[i], self);
+							self.childs[i] = item;
+							el_childs.appendChild(item.target)
+						}
+					}
+
+				}
+				init();
+
+				return self;
+			
+			}
+
+			function render(menu = _menu, parent = {data: {}, target: CreateElement()}){
+				for(let i in menu){
+					let item = menu[i];
+					let menuitem = MenuItem(i, item, parent);
+					parent.target.appendChild(menuitem.target);
+					parent.data[i] = menuitem;
+				}
+
+				return parent;
+			}
+
+			return render;
+
+		}
+
+		let menu = Menu()(MENU);
+
+		document.getElementById('menu').appendChild(menu.target)
+
+	</script>
+
+</body>
+</html>
