@@ -15,14 +15,24 @@
 	transition: width .4s;
 }
 
-.menu-item > label:hover{
+.root-item{
+	margin-bottom: 10px;
+	border-bottom: 1px solid #ccc;
+	padding: 1px;
+}
+
+.child-item{
+	padding-left: 20px;
+}
+
+.menu-item > .item-info:hover, .active > .item-info{
 	color: black;
 	background: red;
 }
 
-.menu-item > label{
+.menu-item > .item-info{
 	cursor: pointer;
-	flex: 1;
 	padding: 6px;
+	flex: 1;
 	display: block;
 }

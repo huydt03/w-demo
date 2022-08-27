@@ -5,23 +5,7 @@
 	<title>Admin</title>
 	<link rel="stylesheet" type="text/css" href="assets/css/main.css">
 	<link rel="stylesheet" type="text/css" href="assets/css/style.css">
-
-	<script type="text/javascript">
-		const MENU = [
-			{label: 'Dashbroad', icon: 'img/a.png', href: '#'},
-			{label: 'Users', icon: 'img/a.png', childs: [
-				['List User', [
-					['Preview']
-				]],
-				['Create User'],
-			]},
-			['Groups', [
-				['List User'],
-				['Create User'],
-			]],
-			['Options'],
-		]
-	</script>
+	<script type="text/javascript" src="assets/js/Menu.js"></script>
 </head>
 <body>
 
@@ -61,132 +45,61 @@
 
 	<script type="text/javascript">
 
-		function CreateElement(options = {}){
-			let el = document.createElement(options.type || 'div');
-			for(let i in options.attrs){
-				let value = options.attrs[i];
-				el.setAttribute(i, value);
+		let el_menu = document.getElementById('menu');
+
+		(()=>{
+
+			let active_item;
+
+			function action(item){
+				if(active_item)
+					active_item.classList.remove('active');
+				active_item = item.target;
+				active_item.classList.add('active');
+				window.history.pushState(item.id, item.label, `?slug=${item.slug}`);
 			}
 
-			if(options.text)
-				el.innerHTML = options.text;
+			const MENU = [
+				{label: 'Dashbroad', action},
+				{label: 'Users', childs: [
+					['List User', [
+						['Preview', null, null, action]
+					],null, action],
+					['Create User', null, null, action],
+				]},
+				['Groups', [
+					['List Groups', null, null, action],
+					['Create Groups', null, null, action],
+				]],
+				['Options', null, null, action],
+			]
 
-			return el;
-		}
-		// item: [label, childs, attrs, action, href] {icon}
-		function Menu(_menu) {
+			let menu = Menu(MENU);
 
-			function MenuItem(id, options, parent){
-
-				function to_slug(Text) {
-				  return Text.toLowerCase()
-				             .replace(/[^\w ]+/g, '')
-				             .replace(/ +/g, '-');
-				}
-
-				let label = options.label || options[0];
-
-				let childs = options.childs || options[1];
-
-				let attrs = options.attrs || options[2];
-
-				let action = options.action || options[3];
-
-				let href = options.href || options[4];
-
-				let icon = options.icon;
-
-				let target = CreateElement({ attrs: {class: 'menu-item'} });
-
-				let el_label = CreateElement({type: 'label', text: label, attrs });
-
-				function grand_parent(parent = self){
-					if(!parent.parent)
-						// return [{id: parent.id, label: parent.label, slug: parent.slug, action: parent.action}];
-						return [];
-					return [...grand_parent(parent.parent), {id: parent.id, label: parent.label, slug: parent.slug, action: parent.action}];
-				}
-
-				let self = {id, label, parent, slug: to_slug(label), target, grand_parent, action }
-
-				function init(){
-
-					if(href)
-						target = CreateElement({ type: 'a', attrs: {class: 'menu-item', href} });
-					else
-						target = CreateElement({ attrs: {class: 'menu-item'} });
-
-					target.onclick = action;
-
-					if(icon){
-						let el_icon;
-						if(icon.includes('.'))
-							el_icon = CreateElement({type: 'img', attrs: {
-								class: 'menu-item-icon',
-								src: icon
-							}})
-						else
-							el_icon = CreateElement({type: 'i', attrs: {
-								class: `menu-item-icon ${icon}`
-							}})
-
-						let el_group = CreateElement({attrs: { class: 'flex' }});
-						el_group.appendChild(el_icon);
-						el_group.appendChild(el_label);
-
-						target.appendChild(el_group);
-					}
-					else
-						target.appendChild(el_label);
-
-					Object.defineProperties(self, {
-						grand_parent: { get: function(){ return grand_parent() } },
-						target: { get: function(){ return target; } },
-						action: { get: function(){ return function(){
-							if(typeof action == 'function')
-								action(self);
-						}; } },
-					})
-
-					if(typeof childs == 'object'){
-						self.childs = {};
-						target.classList.add('has-childs');
-						let el_childs = CreateElement({attrs: {
-							class: 'child-item padding-v z-4'
-						}});
-						target.appendChild(el_childs);
-						for(let i in childs){
-							let item = MenuItem(i, childs[i], self);
-							self.childs[i] = item;
-							el_childs.appendChild(item.target)
-						}
-					}
-
-				}
-				init();
-
-				return self;
-			
+			function getUrlParams(){
+				const params = new Proxy(new URLSearchParams(window.location.search), {
+				  get: (searchParams, prop) => searchParams.get(prop),
+				});
+				return params;
 			}
 
-			function render(menu = _menu, parent = {data: {}, target: CreateElement()}){
-				for(let i in menu){
-					let item = menu[i];
-					let menuitem = MenuItem(i, item, parent);
-					parent.target.appendChild(menuitem.target);
-					parent.data[i] = menuitem;
-				}
+			// const ajax = new Worker('assets/js/ajax_worker.js');
 
-				return parent;
+			// ajax.onmessage = function(data){
+			// 	console.dir(data.data);
+			// }
+
+			function init(){
+				let item = menu.data[getUrlParams()['slug']] || menu.data['dashbroad'];
+				item.action();
+				el_menu.appendChild(menu.target);
+				ajax.postMessage({uri: '', data: {username: 'Administrator', password: '12345678'}})
 			}
+			init();
 
-			return render;
+		})();
 
-		}
 
-		let menu = Menu()(MENU);
-
-		document.getElementById('menu').appendChild(menu.target)
 
 	</script>
 
